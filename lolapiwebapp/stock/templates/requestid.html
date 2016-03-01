@@ -1,0 +1,13 @@
+{% if success == 0 %}
+<p>Search Error! <a href="{% url 'getSummonerId' %}">Try again</a></p>
+{% endif %}
+
+
+{% if success == 1 %}
+<p><strong>Player Found!</strong></p>
+<p>Summoner Name: {{summonerName}}</p>
+<p>Player's ID: {{id}}</p>
+<p>Level: {{summonerLevel}}</p>
+<p>Profile Icon: {{profileIcon}}</p>
+<p><a href="{% url 'getSummonerId' %}">Search another player</a></p>
+{% endif %}

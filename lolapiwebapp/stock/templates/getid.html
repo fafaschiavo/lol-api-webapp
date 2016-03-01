@@ -1,0 +1,8 @@
+<p>Hello get id Stock!</p>
+
+<form action="requestid/" method="post">
+	{% csrf_token %}
+    <label for="requestId">Summoner name: </label>
+    <input id="requestId" type="text" name="requestId" value="Nome de Incovador">
+    <input type="submit" value="Go!">
+</form>
