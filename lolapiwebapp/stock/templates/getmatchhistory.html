@@ -1,0 +1,10 @@
+<p><strong>Hello get id Stock!</strong></p>
+
+<form action="requestmatchhistory/" method="post">
+	{% csrf_token %}
+    <label for="requestmatchhistory">Summoner name: </label>
+    <input id="requestmatchhistory" type="text" name="requestmatchhistory" value="Nome de Incovador">
+    <input type="submit" value="Go!">
+</form>
+
+<p><a href="{% url 'index' %}">Back to the menu</a></p>

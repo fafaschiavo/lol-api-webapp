@@ -27,6 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Constants Definition
+
+LOL_API_KEY = '93ecac97-49b3-4639-a4b8-51421bd89855'
+LOL_REGION = 'br'
 
 # Application definition
 
