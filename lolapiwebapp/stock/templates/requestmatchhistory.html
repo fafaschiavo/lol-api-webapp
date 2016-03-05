@@ -1,1 +1,25 @@
-<p>Hello Match history</p>
+<p><strong>Hello to Match History</strong></p>
+
+{% if success == 'false' %}
+	<p>Summoner not found!</p>
+	<a href="{% url 'getmatchhistory' %}"><p>Try Again!</p></a>
+{% endif %}
+
+{% if success != 'false' %}
+	<a href="{% url 'getmatchhistory' %}"><p>Search another summoner</p></a>
+	<p><strong>{{summoner_name}}`s Match History:</strong></p>
+	<table>
+		<tr>
+			{% for key in header %}
+			    <th>{{key}}</th>
+			{% endfor %}
+		</tr>
+		{% for match in matches %}
+			<tr>
+				{% for column in match %}
+					<td style="text-align: center; padding: 10px">{{column}}</td>
+				{% endfor %}
+			</tr>
+		{% endfor %}
+	</table>
+{% endif %}

@@ -27,6 +27,18 @@ def searchSummonnerId(summoner_name):
     	context['success'] = 0
     	return context
 
+def searchHeroName(championId):
+    api_key=settings.LOL_API_KEY
+    region=settings.LOL_REGION
+    
+    championId = str(championId)
+    url = 'https://na.api.pvp.net/api/lol/static-data/'+ region +'/v1.2/champion/'+ championId +'?api_key=' + api_key
+    resp = requests.get(url=url)
+    try:
+        data = json.loads(resp.text)
+        return data['name']
+    except ValueError:
+        return championId
 
 
 
@@ -59,22 +71,35 @@ def requestmatchhistory(request):
 
     #Transform the data into string, then transform into lowercase and remove all the whitespaces
     summoner_name = str(template_form)
-    context = searchSummonnerId(summoner_name)
-    url = 'https://na.api.pvp.net/api/lol/' + settings.LOL_REGION + '/v2.2/matchlist/by-summoner/' + str(context['id']) + '?api_key=' + settings.LOL_API_KEY
-    resp = requests.get(url=url)
-    data = json.loads(resp.text)
+    summoner_info = searchSummonnerId(summoner_name)
+    context = {}
+    context['summoner_name'] = summoner_name
 
-    #print data['matches'][0]['matchId']
+    try:
+        url = 'https://na.api.pvp.net/api/lol/' + settings.LOL_REGION + '/v2.2/matchlist/by-summoner/' + str(summoner_info['id']) + '?api_key=' + settings.LOL_API_KEY
+        resp = requests.get(url=url)
+        data = json.loads(resp.text)
 
-    for match in data['matches']:
-    	context['match'+str(match['matchId'])] = match
+        context['header'] = []
+        context['header'].append('Lane')
+        context['header'].append('Champion')
+        context['header'].append('Season')
+        context['header'].append('Match ID')
+        context['header'].append('Duration')
 
-    print context
-    return render(request, 'requestmatchhistory.html', context)   
+        context['matches'] = []
+        match_data_to_context = []
+        for match in data['matches']:
+            match_data_to_context = []
+            match_data_to_context.append(match['lane'])
+            match_data_to_context.append(match['champion'])
+            match_data_to_context.append(match['season'])
+            match_data_to_context.append(match['matchId'])
+            match_data_to_context.append(match['timestamp'])
+            context['matches'].append(match_data_to_context)
 
+        return render(request, 'requestmatchhistory.html', context) 
 
-#get id by name:
-#https://na.api.pvp.net/api/lol/br/v1.4/summoner/by-name/HelloKitter?api_key=93ecac97-49b3-4639-a4b8-51421bd89855
-
-#get history by id:
-#https://na.api.pvp.net/api/lol/br/v2.2/matchlist/by-summoner/412770?api_key=93ecac97-49b3-4639-a4b8-51421bd89855
+    except KeyError:
+        context['success'] = 'false'
+        return render(request, 'requestmatchhistory.html', context) 
