@@ -1,3 +1,4 @@
+from pprint import pprint
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
@@ -103,3 +104,30 @@ def requestmatchhistory(request):
     except KeyError:
         context['success'] = 'false'
         return render(request, 'requestmatchhistory.html', context) 
+
+def getcurrentgame(request):
+    context = {}
+    return render(request, 'getcurrentgame.html', context)
+
+def requestcurrentgame(request):
+    #receive data from the template
+    template_form = request.POST['requestcurrentgame']
+
+    #Transform the data into string, then transform into lowercase and remove all the whitespaces
+    summoner_name = str(template_form)
+    summoner_info = searchSummonnerId(summoner_name)
+    context = {}
+    context['summoner_name'] = summoner_name
+    context['summoner_id'] = summoner_info
+
+    url = 'https://na.api.pvp.net/observer-mode/rest/consumer/getSpectatorGameInfo/'+ settings.LOL_PLATFORM_ID +'/'+ str(summoner_info['id']) +'?api_key=' + settings.LOL_API_KEY
+    resp = requests.get(url=url)
+    data = json.loads(resp.text)
+    pprint(data)
+    context['game_info'] = data
+
+    return render(request, 'requestcurrentgame.html', context)
+
+    #settings.LOL_PLATFORM_ID
+    #str(summoner_info['id'])
+    #settings.LOL_API_KEY

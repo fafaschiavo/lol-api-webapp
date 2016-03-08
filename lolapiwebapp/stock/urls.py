@@ -8,4 +8,6 @@ urlpatterns = [
     url(r'^getid/requestid/$', views.requestId, name='requestId'),
     url(r'^getmatchhistory/$', views.getmatchhistory, name='getmatchhistory'),
     url(r'^getmatchhistory/requestmatchhistory/$', views.requestmatchhistory, name='requestmatchhistory'),
+    url(r'^getcurrentgame/$', views.getcurrentgame, name='getcurrentgame'),
+    url(r'^getcurrentgame/requestcurrentgame/$', views.requestcurrentgame, name='requestcurrentgame'),
 ]

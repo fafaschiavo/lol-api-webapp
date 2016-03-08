@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 
 LOL_API_KEY = '93ecac97-49b3-4639-a4b8-51421bd89855'
 LOL_REGION = 'br'
+LOL_PLATFORM_ID = 'BR1'
 
 # Application definition
 
@@ -80,11 +81,22 @@ WSGI_APPLICATION = 'lolapiwebapp.wsgi.application'
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    'default': {.
+        'ENGINE': 'django.db.backends.mysql', 
+        'NAME': 'lol_webapp',
+        'USER': 'root',
+        'PASSWORD': 'root',
+        'HOST': '127.0.0.1',   # Or an IP Address that your DB is hosted on
+        'PORT': '3306',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
 
 
 # Password validation

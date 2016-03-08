@@ -1,0 +1,10 @@
+<p><strong>Hello Get Current Game!</strong></p>
+
+<form action="requestcurrentgame/" method="post">
+	{% csrf_token %}
+    <label for="requestcurrentgame">Summoner name: </label>
+    <input id="requestcurrentgame" type="text" name="requestcurrentgame" value="Nome de Incovador">
+    <input type="submit" value="Go!">
+</form>
+
+<p><a href="{% url 'index' %}">Back to the menu</a></p>
