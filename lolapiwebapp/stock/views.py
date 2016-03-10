@@ -2,16 +2,17 @@ from pprint import pprint
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
+from stock.models import Hero
 import json, requests
 
 # Create your procedures here.
-def searchSummonnerId(summoner_name):
-    api_key=settings.LOL_API_KEY
-    region=settings.LOL_REGION
 
+
+
+def searchSummonnerId(summoner_name):
     summoner_name = summoner_name.lower()
     summoner_name = summoner_name.replace(" ", "")
-    url = 'https://na.api.pvp.net/api/lol/'+ region +'/v1.4/summoner/by-name/'+ summoner_name +'?api_key=' + api_key
+    url = 'https://na.api.pvp.net/api/lol/'+ settings.LOL_REGION +'/v1.4/summoner/by-name/'+ summoner_name +'?api_key=' + settings.LOL_API_KEY
     
     resp = requests.get(url=url)
     data = json.loads(resp.text)
@@ -28,29 +29,42 @@ def searchSummonnerId(summoner_name):
     	context['success'] = 0
     	return context
 
-def searchHeroName(championId):
-    api_key=settings.LOL_API_KEY
-    region=settings.LOL_REGION
-    
-    championId = str(championId)
-    url = 'https://na.api.pvp.net/api/lol/static-data/'+ region +'/v1.2/champion/'+ championId +'?api_key=' + api_key
+
+
+
+def searchSummonerName(summoner_id):
+    if type(summoner_id) != list:
+        id_list = str(summoner_id)
+    else:
+        id_list = ''
+        for summoner in summoner_id:
+            id_list = id_list + str(summoner) + ','
+
+    url = 'https://na.api.pvp.net/api/lol/'+ settings.LOL_REGION +'/v1.4/summoner/'+ id_list +'?api_key=' + settings.LOL_API_KEY
     resp = requests.get(url=url)
-    try:
-        data = json.loads(resp.text)
-        return data['name']
-    except ValueError:
-        return championId
+    data = json.loads(resp.text)
+    pprint(data)
+    return data
 
 
 
 # Create your views here.
+
+
+
 def index(request):
     context = {}
     return render(request, 'index.html', context)
 
+
+
+
 def getSummonerId(request):
     context = {}
     return render(request, 'getid.html', context)
+
+
+
 
 def requestId(request):
     #receive data from the template
@@ -62,9 +76,15 @@ def requestId(request):
 
     return render(request, 'requestid.html', context)
 
+
+
+
 def getmatchhistory(request):
     context = {}
     return render(request, 'getmatchhistory.html', context)
+
+
+
 
 def requestmatchhistory(request):
     #receive data from the template
@@ -93,7 +113,11 @@ def requestmatchhistory(request):
         for match in data['matches']:
             match_data_to_context = []
             match_data_to_context.append(match['lane'])
-            match_data_to_context.append(match['champion'])
+            champion_name = Hero.objects.filter(id_riot = match['champion'])
+            try:
+                match_data_to_context.append(champion_name[0].name)
+            except IndexError:
+                match_data_to_context.append('-')
             match_data_to_context.append(match['season'])
             match_data_to_context.append(match['matchId'])
             match_data_to_context.append(match['timestamp'])
@@ -105,9 +129,15 @@ def requestmatchhistory(request):
         context['success'] = 'false'
         return render(request, 'requestmatchhistory.html', context) 
 
+
+
+
 def getcurrentgame(request):
     context = {}
     return render(request, 'getcurrentgame.html', context)
+
+
+
 
 def requestcurrentgame(request):
     #receive data from the template
@@ -128,6 +158,31 @@ def requestcurrentgame(request):
 
     return render(request, 'requestcurrentgame.html', context)
 
+
+
+
+def refreshChampionDatabase(request):
+    context ={}
+    # request the champion list from the riot API
+    url = 'https://na.api.pvp.net/api/lol/static-data/'+ settings.LOL_REGION +'/v1.2/champion?api_key=' + settings.LOL_API_KEY
+    resp = requests.get(url=url)
+    data = json.loads(resp.text)
+
+    # delete all the existing heroes so the new information can be added
+    old_heroes = Hero.objects.all()
+    old_heroes.delete() 
+
+    for champion in data['data']:
+        champion_id_riot = data['data'][champion]['id']
+        champion_name = data['data'][champion]['name']
+        champion_title = data['data'][champion]['title']
+        new_champion = Hero(id_riot = champion_id_riot, name = champion_name, title = champion_title)
+        new_champion.save()
+
+    return render(request, 'refresh-champion-database.html', context)
+
     #settings.LOL_PLATFORM_ID
     #str(summoner_info['id'])
     #settings.LOL_API_KEY
+    #id do bazetinho 7523004
+    #id do fafis 454451

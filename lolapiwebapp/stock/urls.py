@@ -10,4 +10,5 @@ urlpatterns = [
     url(r'^getmatchhistory/requestmatchhistory/$', views.requestmatchhistory, name='requestmatchhistory'),
     url(r'^getcurrentgame/$', views.getcurrentgame, name='getcurrentgame'),
     url(r'^getcurrentgame/requestcurrentgame/$', views.requestcurrentgame, name='requestcurrentgame'),
+    url(r'^refresh-champion-database/$', views.refreshChampionDatabase, name='refreshChampionDatabase'),
 ]

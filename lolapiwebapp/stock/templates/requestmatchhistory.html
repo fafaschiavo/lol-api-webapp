@@ -7,7 +7,7 @@
 
 {% if success != 'false' %}
 	<a href="{% url 'getmatchhistory' %}"><p>Search another summoner</p></a>
-	<p><strong>{{summoner_name}}`s Match History:</strong></p>
+	<p><strong>{{summoner_name}}`s Ranked Match History:</strong></p>
 	<table>
 		<tr>
 			{% for key in header %}

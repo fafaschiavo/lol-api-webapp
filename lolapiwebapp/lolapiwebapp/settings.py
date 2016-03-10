@@ -81,7 +81,7 @@ WSGI_APPLICATION = 'lolapiwebapp.wsgi.application'
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
 DATABASES = {
-    'default': {.
+    'default': {
         'ENGINE': 'django.db.backends.mysql', 
         'NAME': 'lol_webapp',
         'USER': 'root',
