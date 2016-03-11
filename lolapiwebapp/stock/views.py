@@ -43,7 +43,19 @@ def searchSummonerName(summoner_id):
     url = 'https://na.api.pvp.net/api/lol/'+ settings.LOL_REGION +'/v1.4/summoner/'+ id_list +'?api_key=' + settings.LOL_API_KEY
     resp = requests.get(url=url)
     data = json.loads(resp.text)
-    pprint(data)
+    return data
+
+def searchSummonerRank(summoner_id):
+    if type(summoner_id) != list:
+        id_list = str(summoner_id)
+    else:
+        id_list = ''
+        for summoner in summoner_id:
+            id_list = id_list + str(summoner) + ','
+
+    url = 'https://na.api.pvp.net/api/lol/'+ settings.LOL_REGION +'/v2.5/league/by-summoner/'+ id_list +'?api_key=' + settings.LOL_API_KEY
+    resp = requests.get(url=url)
+    data = json.loads(resp.text)
     return data
 
 
@@ -153,9 +165,35 @@ def requestcurrentgame(request):
     url = 'https://na.api.pvp.net/observer-mode/rest/consumer/getSpectatorGameInfo/'+ settings.LOL_PLATFORM_ID +'/'+ str(summoner_info['id']) +'?api_key=' + settings.LOL_API_KEY
     resp = requests.get(url=url)
     data = json.loads(resp.text)
-    pprint(data)
-    context['game_info'] = data
 
+    data_formated={}
+
+    #search for the participant names based on their IDs
+    players_ids_list = []
+    for player in data['participants']:
+        players_ids_list.append(player['summonerId'])
+
+    player_objects = searchSummonerName(players_ids_list)
+    # player_ranks = searchSummonerRank(players_ids_list)
+    # pprint(player_ranks[player_ranks.keys()[0]])
+
+    player_ranks = searchSummonerRank(514850)
+    print player_ranks
+
+
+    # fill the data array with the name
+    for player in player_objects:
+        data_formated[player] ={}
+        data_formated[player]['name'] = player_objects[player]['name']
+
+    #fill the data array with the champion name
+    for player in data['participants']:
+        heroes_ids = player['championId']
+        champion = Hero.objects.filter(id_riot = heroes_ids)
+        data_formated[str(player['summonerId'])]['champion'] = champion[0].__str__()
+
+    # pprint(data_formated)
+    context['game_info'] = data_formated
     return render(request, 'requestcurrentgame.html', context)
 
 
@@ -186,3 +224,4 @@ def refreshChampionDatabase(request):
     #settings.LOL_API_KEY
     #id do bazetinho 7523004
     #id do fafis 454451
+    #id do leo 514850
