@@ -174,17 +174,23 @@ def requestcurrentgame(request):
         players_ids_list.append(player['summonerId'])
 
     player_objects = searchSummonerName(players_ids_list)
-    # player_ranks = searchSummonerRank(players_ids_list)
-    # pprint(player_ranks[player_ranks.keys()[0]])
+    player_ranks = searchSummonerRank(players_ids_list)
 
-    player_ranks = searchSummonerRank(514850)
-    print player_ranks
+    # pprint(player_ranks['461912'][0]['name'])
 
+    # pprint(data)
 
     # fill the data array with the name
     for player in player_objects:
         data_formated[player] ={}
         data_formated[player]['name'] = player_objects[player]['name']
+
+    for player in data['participants']:
+        data_formated[str(player['summonerId'])]['side'] = player['teamId']
+
+    # fill the data array with the tier
+    for player in player_ranks:
+        data_formated[player]['tier'] = player_ranks[player][0]['tier']
 
     #fill the data array with the champion name
     for player in data['participants']:
@@ -192,7 +198,7 @@ def requestcurrentgame(request):
         champion = Hero.objects.filter(id_riot = heroes_ids)
         data_formated[str(player['summonerId'])]['champion'] = champion[0].__str__()
 
-    # pprint(data_formated)
+    pprint(data_formated)
     context['game_info'] = data_formated
     return render(request, 'requestcurrentgame.html', context)
 
