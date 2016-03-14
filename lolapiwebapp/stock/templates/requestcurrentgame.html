@@ -1,5 +1,43 @@
-<p>Hello</p>
+<p><strong> Hello! {{summoner_name}}'s current match stats are: </strong></p>
 
-<p>{{summoner_name}}</p>
-<p>{{summoner_id}}</p>
-<p>{{game_info}}</p>
+<br><br>
+
+<table>
+	<tr>
+		{% for key in context.header %}
+		<th>
+			{{key}}
+		</th>
+		{% endfor %}
+	</tr>
+	{% for player in context.players %}
+	<tr>
+		{% for value in player %}
+		<td style="text-align: center; padding: 10px">
+			{{value}}
+		</td>
+		{% endfor %}
+	</tr>
+	{% endfor %}
+</table>
+
+<br><br>
+
+<table>
+	<tr>
+		{% for key in context2.header %}
+		<th>
+			{{key}}
+		</th>
+		{% endfor %}
+	</tr>
+	{% for player in context2.players %}
+	<tr>
+		{% for value in player %}
+		<td style="text-align: center; padding: 10px">
+			{{value}}
+		</td>
+		{% endfor %}
+	</tr>
+	{% endfor %}
+</table>

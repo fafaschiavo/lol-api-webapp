@@ -10,24 +10,29 @@ import json, requests
 
 
 def searchSummonnerId(summoner_name):
+    context = {}
     summoner_name = summoner_name.lower()
     summoner_name = summoner_name.replace(" ", "")
     url = 'https://na.api.pvp.net/api/lol/'+ settings.LOL_REGION +'/v1.4/summoner/by-name/'+ summoner_name +'?api_key=' + settings.LOL_API_KEY
-    
     resp = requests.get(url=url)
-    data = json.loads(resp.text)
-    context = {}
 
-    try:
-    	context['success'] = 1
-    	context['summonerName'] = summoner_name
-    	context['summonerLevel'] = data[summoner_name]['summonerLevel']
-    	context['id'] = data[summoner_name]['id']
-    	context['profileIcon'] = data[summoner_name]['profileIconId']
-    	return context
-    except KeyError, e:
-    	context['success'] = 0
-    	return context
+    if resp.status_code == 200:   
+
+        data = json.loads(resp.text)
+
+        try:
+        	context['success'] = 1
+        	context['summonerName'] = summoner_name
+        	context['summonerLevel'] = data[summoner_name]['summonerLevel']
+        	context['id'] = data[summoner_name]['id']
+        	context['profileIcon'] = data[summoner_name]['profileIconId']
+        	return context
+        except KeyError, e:
+        	context['success'] = 0
+        	return context
+    else:
+        context['success'] = 0
+        return context
 
 
 
@@ -56,6 +61,16 @@ def searchSummonerRank(summoner_id):
     url = 'https://na.api.pvp.net/api/lol/'+ settings.LOL_REGION +'/v2.5/league/by-summoner/'+ id_list +'?api_key=' + settings.LOL_API_KEY
     resp = requests.get(url=url)
     data = json.loads(resp.text)
+    return data
+
+def searchSummonerChampionMastery(summoner_id, champion_id):
+    url = 'https://na.api.pvp.net/championmastery/location/'+ settings.LOL_PLATFORM_ID +'/player/'+ str(summoner_id) +'/champion/'+ str(champion_id) +'?api_key=' + settings.LOL_API_KEY
+    resp = requests.get(url=url)
+    try:
+        data = json.loads(resp.text)
+    except ValueError, e:
+        data = {}
+        data['championLevel'] = 0
     return data
 
 
@@ -159,48 +174,95 @@ def requestcurrentgame(request):
     summoner_name = str(template_form)
     summoner_info = searchSummonnerId(summoner_name)
     context = {}
-    context['summoner_name'] = summoner_name
-    context['summoner_id'] = summoner_info
+    context2 = {}
 
-    url = 'https://na.api.pvp.net/observer-mode/rest/consumer/getSpectatorGameInfo/'+ settings.LOL_PLATFORM_ID +'/'+ str(summoner_info['id']) +'?api_key=' + settings.LOL_API_KEY
-    resp = requests.get(url=url)
-    data = json.loads(resp.text)
+    # check if the the player name was found in the lol database (1)
+    if summoner_info['success'] == 1:
 
-    data_formated={}
+        url = 'https://na.api.pvp.net/observer-mode/rest/consumer/getSpectatorGameInfo/'+ settings.LOL_PLATFORM_ID +'/'+ str(summoner_info['id']) +'?api_key=' + settings.LOL_API_KEY
+        resp = requests.get(url=url)
 
-    #search for the participant names based on their IDs
-    players_ids_list = []
-    for player in data['participants']:
-        players_ids_list.append(player['summonerId'])
+        # check if this player is currently in game (2)
+        if resp.status_code == 200:
+            data = json.loads(resp.text)
 
-    player_objects = searchSummonerName(players_ids_list)
-    player_ranks = searchSummonerRank(players_ids_list)
+            data_formated={}
 
-    # pprint(player_ranks['461912'][0]['name'])
+            #search for the participant names based on their IDs
+            players_ids_list = []
+            for player in data['participants']:
+                players_ids_list.append(player['summonerId'])
 
-    # pprint(data)
+            player_objects = searchSummonerName(players_ids_list)
+            player_ranks = searchSummonerRank(players_ids_list)
 
-    # fill the data array with the name
-    for player in player_objects:
-        data_formated[player] ={}
-        data_formated[player]['name'] = player_objects[player]['name']
+            # fill the data array with the name
+            for player in player_objects:
+                data_formated[player] ={}
+                data_formated[player]['name'] = player_objects[player]['name']
 
-    for player in data['participants']:
-        data_formated[str(player['summonerId'])]['side'] = player['teamId']
+            for player in data['participants']:
+                data_formated[str(player['summonerId'])]['side'] = player['teamId']
 
-    # fill the data array with the tier
-    for player in player_ranks:
-        data_formated[player]['tier'] = player_ranks[player][0]['tier']
+            pprint(player)
 
-    #fill the data array with the champion name
-    for player in data['participants']:
-        heroes_ids = player['championId']
-        champion = Hero.objects.filter(id_riot = heroes_ids)
-        data_formated[str(player['summonerId'])]['champion'] = champion[0].__str__()
+            # fill the data array with the tier
+            for player in player_ranks:
+                data_formated[player]['tier'] = player_ranks[player][0]['tier']
 
-    pprint(data_formated)
-    context['game_info'] = data_formated
-    return render(request, 'requestcurrentgame.html', context)
+            #fill the data array with the champion name
+            for player in data['participants']:
+                heroes_ids = player['championId']
+                # championmastery = searchSummonerChampionMastery(player['summonerId'], heroes_ids)
+                # masterylevel = championmastery['championLevel']
+                champion = Hero.objects.filter(id_riot = heroes_ids)
+                data_formated[str(player['summonerId'])]['champion'] = champion[0].__str__()
+                try:
+                    data_formated[str(player['summonerId'])]['tier']
+                    # data_formated[str(player['summonerId'])]['masterylevel'] = masterylevel
+                except:
+                    data_formated[str(player['summonerId'])]['tier'] = 'Unranked'
+                    # data_formated[str(player['summonerId'])]['masterylevel'] = masterylevel
+
+            context['header'] = []
+            context['header'].append('Name')
+            context['header'].append('Champion')
+            context['header'].append('Tier')
+
+            context['players'] = []
+            player_data_to_context = []
+            for player in data_formated:
+                if data_formated[player]['side'] == 100:
+                    player_data_to_context = []
+                    player_data_to_context.append(data_formated[player]['name'])
+                    player_data_to_context.append(data_formated[player]['champion'])
+                    player_data_to_context.append(data_formated[player]['tier'])
+                    context['players'].append(player_data_to_context)
+
+            context2['header'] = []
+            context2['header'].append('Name')
+            context2['header'].append('Champion')
+            context2['header'].append('Tier')
+
+            context2['players'] = []
+            player_data_to_context = []
+            for player in data_formated:
+                if data_formated[player]['side'] == 200:
+                    player_data_to_context = []
+                    player_data_to_context.append(data_formated[player]['name'])
+                    player_data_to_context.append(data_formated[player]['champion'])
+                    player_data_to_context.append(data_formated[player]['tier'])
+                    context2['players'].append(player_data_to_context)
+
+            return render(request, 'requestcurrentgame.html', {'context': context, 'context2': context2, 'summoner_name': summoner_name, 'summoner_info': summoner_info})
+
+        # check if this player is currently in game (2)
+        else:
+            return render(request, 'general-error.html', context)
+
+    # check if the the player name was found in the lol database (1)
+    else:
+        return render(request, 'general-error.html', context)
 
 
 
