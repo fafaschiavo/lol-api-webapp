@@ -3,10 +3,30 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
 from stock.models import Hero
-import json, requests
+from stock.models import mastery
+import json, requests, grequests
 
 # Create your procedures here.
 
+
+
+
+def searchSummonerStats():
+    context = {}
+
+    urls = [
+        'https://na.api.pvp.net/api/lol/br/v1.3/stats/by-summoner/454451/summary?api_key=93ecac97-49b3-4639-a4b8-51421bd89855',
+        'https://na.api.pvp.net/api/lol/br/v1.3/stats/by-summoner/454451/summary?api_key=93ecac97-49b3-4639-a4b8-51421bd89855',
+        'https://na.api.pvp.net/api/lol/br/v1.3/stats/by-summoner/454451/summary?api_key=93ecac97-49b3-4639-a4b8-51421bd89855',
+        'https://na.api.pvp.net/api/lol/br/v1.3/stats/by-summoner/454451/summary?api_key=93ecac97-49b3-4639-a4b8-51421bd89855',
+        'https://na.api.pvp.net/api/lol/br/v1.3/stats/by-summoner/454451/summary?api_key=93ecac97-49b3-4639-a4b8-51421bd89855',
+    ]
+
+    rs = (grequests.get(u) for u in urls)
+    resp = grequests.map(rs)
+    a = json.loads(resp[0].text)
+    print a
+    return context
 
 
 def searchSummonnerId(summoner_name):
@@ -72,6 +92,59 @@ def searchSummonerChampionMastery(summoner_id, champion_id):
         data = {}
         data['championLevel'] = 0
     return data
+
+
+
+
+
+def refreshMasteryDatabase(request):
+    context ={}
+    # request the mastery list from the riot API
+    url = 'https://na.api.pvp.net/api/lol/static-data/'+ settings.LOL_REGION +'/v1.2/mastery?api_key=' + settings.LOL_API_KEY
+    resp = requests.get(url=url)
+    data = json.loads(resp.text)
+
+    # delete all the existing masteries so the new information can be added
+    old_masteries = mastery.objects.all()
+    old_masteries.delete()
+
+    for mastery_item in data['data']:
+        mastery_id_riot = data['data'][mastery_item]['id']
+        mastery_name = data['data'][mastery_item]['name']
+        mastery_description = data['data'][mastery_item]['description']
+        table_position = str(mastery_id_riot)[1]
+        for item in mastery_description:
+                mastery_description_single_var = item
+        new_mastery = mastery(id_riot = mastery_id_riot, name = mastery_name, description = mastery_description_single_var, position = table_position)
+        new_mastery.save()
+
+    return render(request, 'refresh-mastery-database.html', context)
+
+
+
+
+
+
+def refreshChampionDatabase(request):
+    context ={}
+    # request the champion list from the riot API
+    url = 'https://na.api.pvp.net/api/lol/static-data/'+ settings.LOL_REGION +'/v1.2/champion?api_key=' + settings.LOL_API_KEY
+    resp = requests.get(url=url)
+    data = json.loads(resp.text)
+
+    # delete all the existing heroes so the new information can be added
+    old_heroes = Hero.objects.all()
+    old_heroes.delete() 
+
+    for champion in data['data']:
+        champion_id_riot = data['data'][champion]['id']
+        champion_name = data['data'][champion]['name']
+        champion_title = data['data'][champion]['title']
+        new_champion = Hero(id_riot = champion_id_riot, name = champion_name, title = champion_title)
+        new_champion.save()
+
+    return render(request, 'refresh-champion-database.html', context)
+
 
 
 
@@ -204,8 +277,6 @@ def requestcurrentgame(request):
             for player in data['participants']:
                 data_formated[str(player['summonerId'])]['side'] = player['teamId']
 
-            pprint(player)
-
             # fill the data array with the tier
             for player in player_ranks:
                 data_formated[player]['tier'] = player_ranks[player][0]['tier']
@@ -224,10 +295,23 @@ def requestcurrentgame(request):
                     data_formated[str(player['summonerId'])]['tier'] = 'Unranked'
                     # data_formated[str(player['summonerId'])]['masterylevel'] = masterylevel
 
+            mastery_set = {}
+            # fill the data array with the masteries stats
+            for player in data['participants']:
+                mastery_set[1] = 0
+                mastery_set[2] = 0
+                mastery_set[3] = 0
+                masteries = player['masteries']
+                for diff_mastery in masteries:
+                    mastery_object = mastery.objects.get(id_riot = diff_mastery['masteryId'])
+                    mastery_set[mastery_object.__position__()] = mastery_set[mastery_object.__position__()] + diff_mastery['rank']
+                data_formated[str(player['summonerId'])]['masteries'] = str(mastery_set[1]) + ' / ' + str(mastery_set[3]) + ' / ' +str(mastery_set[2])
+
             context['header'] = []
             context['header'].append('Name')
             context['header'].append('Champion')
             context['header'].append('Tier')
+            context['header'].append('Masteries')
 
             context['players'] = []
             player_data_to_context = []
@@ -237,12 +321,14 @@ def requestcurrentgame(request):
                     player_data_to_context.append(data_formated[player]['name'])
                     player_data_to_context.append(data_formated[player]['champion'])
                     player_data_to_context.append(data_formated[player]['tier'])
+                    player_data_to_context.append(data_formated[player]['masteries'])
                     context['players'].append(player_data_to_context)
 
             context2['header'] = []
             context2['header'].append('Name')
             context2['header'].append('Champion')
             context2['header'].append('Tier')
+            context2['header'].append('Masteries')
 
             context2['players'] = []
             player_data_to_context = []
@@ -252,6 +338,7 @@ def requestcurrentgame(request):
                     player_data_to_context.append(data_formated[player]['name'])
                     player_data_to_context.append(data_formated[player]['champion'])
                     player_data_to_context.append(data_formated[player]['tier'])
+                    player_data_to_context.append(data_formated[player]['masteries'])
                     context2['players'].append(player_data_to_context)
 
             return render(request, 'requestcurrentgame.html', {'context': context, 'context2': context2, 'summoner_name': summoner_name, 'summoner_info': summoner_info})
@@ -264,28 +351,6 @@ def requestcurrentgame(request):
     else:
         return render(request, 'general-error.html', context)
 
-
-
-
-def refreshChampionDatabase(request):
-    context ={}
-    # request the champion list from the riot API
-    url = 'https://na.api.pvp.net/api/lol/static-data/'+ settings.LOL_REGION +'/v1.2/champion?api_key=' + settings.LOL_API_KEY
-    resp = requests.get(url=url)
-    data = json.loads(resp.text)
-
-    # delete all the existing heroes so the new information can be added
-    old_heroes = Hero.objects.all()
-    old_heroes.delete() 
-
-    for champion in data['data']:
-        champion_id_riot = data['data'][champion]['id']
-        champion_name = data['data'][champion]['name']
-        champion_title = data['data'][champion]['title']
-        new_champion = Hero(id_riot = champion_id_riot, name = champion_name, title = champion_title)
-        new_champion.save()
-
-    return render(request, 'refresh-champion-database.html', context)
 
     #settings.LOL_PLATFORM_ID
     #str(summoner_info['id'])
