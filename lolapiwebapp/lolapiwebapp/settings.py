@@ -37,6 +37,7 @@ ALLOWED_HOSTS = []
 # Constants Definition
 
 LOL_API_KEY = '93ecac97-49b3-4639-a4b8-51421bd89855'
+LOL_API_KEY2 = '672d656b-8863-446a-99bd-adcc3bf28e1a'
 LOL_REGION = 'br'
 LOL_PLATFORM_ID = 'BR1'
 

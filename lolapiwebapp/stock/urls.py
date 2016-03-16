@@ -12,4 +12,5 @@ urlpatterns = [
     url(r'^getcurrentgame/requestcurrentgame/$', views.requestcurrentgame, name='requestcurrentgame'),
     url(r'^refresh-champion-database/$', views.refreshChampionDatabase, name='refreshChampionDatabase'),
     url(r'^refresh-mastery-database/$', views.refreshMasteryDatabase, name='refreshMasteryDatabase'),
+    url(r'^refresh-rune-database/$', views.refreshRuneDatabase, name='refreshRuneDatabase'),
 ]

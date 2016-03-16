@@ -2,8 +2,7 @@ from pprint import pprint
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
-from stock.models import Hero
-from stock.models import mastery
+from stock.models import Hero, mastery, Rune
 import json, requests, grequests
 
 # Create your procedures here.
@@ -11,22 +10,29 @@ import json, requests, grequests
 
 
 
-def searchSummonerStats():
+def searchSummonerStats(summoner_id):
     context = {}
 
-    urls = [
-        'https://na.api.pvp.net/api/lol/br/v1.3/stats/by-summoner/454451/summary?api_key=93ecac97-49b3-4639-a4b8-51421bd89855',
-        'https://na.api.pvp.net/api/lol/br/v1.3/stats/by-summoner/454451/summary?api_key=93ecac97-49b3-4639-a4b8-51421bd89855',
-        'https://na.api.pvp.net/api/lol/br/v1.3/stats/by-summoner/454451/summary?api_key=93ecac97-49b3-4639-a4b8-51421bd89855',
-        'https://na.api.pvp.net/api/lol/br/v1.3/stats/by-summoner/454451/summary?api_key=93ecac97-49b3-4639-a4b8-51421bd89855',
-        'https://na.api.pvp.net/api/lol/br/v1.3/stats/by-summoner/454451/summary?api_key=93ecac97-49b3-4639-a4b8-51421bd89855',
-    ]
+    if type(summoner_id) != list:
+        url = 'https://na.api.pvp.net/api/lol/'+ settings.LOL_REGION +'/v1.3/stats/by-summoner/'+ str(summoner_id) +'/summary?api_key=' + settings.LOL_API_KEY2
+    else:
+        urls = []
+        for summoner in summoner_id:
+            urls.append('https://na.api.pvp.net/api/lol/'+ settings.LOL_REGION +'/v1.3/stats/by-summoner/'+ str(summoner) +'/summary?api_key=' + settings.LOL_API_KEY2)
 
     rs = (grequests.get(u) for u in urls)
     resp = grequests.map(rs)
-    a = json.loads(resp[0].text)
-    print a
-    return context
+
+    stat_success = 1
+    for response in resp:
+        values_json = json.loads(response.text)
+        context[values_json['summonerId']] = values_json
+        if str(response) != '<Response [200]>':
+            stat_success = '0'
+
+    return (context, stat_success)
+
+
 
 
 def searchSummonnerId(summoner_name):
@@ -70,6 +76,9 @@ def searchSummonerName(summoner_id):
     data = json.loads(resp.text)
     return data
 
+
+
+
 def searchSummonerRank(summoner_id):
     if type(summoner_id) != list:
         id_list = str(summoner_id)
@@ -83,6 +92,9 @@ def searchSummonerRank(summoner_id):
     data = json.loads(resp.text)
     return data
 
+
+
+
 def searchSummonerChampionMastery(summoner_id, champion_id):
     url = 'https://na.api.pvp.net/championmastery/location/'+ settings.LOL_PLATFORM_ID +'/player/'+ str(summoner_id) +'/champion/'+ str(champion_id) +'?api_key=' + settings.LOL_API_KEY
     resp = requests.get(url=url)
@@ -93,6 +105,47 @@ def searchSummonerChampionMastery(summoner_id, champion_id):
         data['championLevel'] = 0
     return data
 
+
+
+
+def refreshRuneDatabase(request):
+    context ={}
+    # request the mastery list from the riot API
+    url = 'https://na.api.pvp.net/api/lol/static-data/'+ settings.LOL_REGION +'/v1.2/rune?api_key=' + settings.LOL_API_KEY
+    resp = requests.get(url=url)
+    data = json.loads(resp.text)
+
+    # delete all the existing masteries so the new information can be added
+    old_runes = Rune.objects.all()
+    old_runes.delete()
+
+    for rune in data['data']:
+        rune_id_riot = data['data'][rune]['id']
+        rune_name = data['data'][rune]['name']
+        rune_description = data['data'][rune]['description'].encode('ascii', 'ignore')
+        rune_tier = data['data'][rune]['rune']['tier']
+        rune_type_data = data['data'][rune]['rune']['type']
+        rune_bonus = rune_description.split(' de')[0]
+        rune_honest_text = rune_description.split(rune_bonus)[1]
+        rune_honest_text = rune_honest_text.split(' (')[0]
+        try:
+            rune_bonus = rune_bonus.split('+')[1]
+        except:
+            rune_bonus = rune_bonus.split('-')[1]
+        try:
+            rune_is_percentage = rune_bonus.split('%')[1]
+            rune_bonus = rune_bonus.split('%')[0]
+            rune_is_percentage = 1
+        except:
+            rune_is_percentage = 0
+        # rune_bonus = rune_bonus.replace(' ', '')
+        rune_bonus = rune_bonus.split(' ')[0]
+        rune_bonus = rune_bonus.replace(',', '.')
+        rune_bonus = rune_bonus.replace(' ', '')
+        new_rune = Rune(id_riot = rune_id_riot, name = rune_name, description = rune_description, tier = rune_tier, rune_type = rune_type_data, bonus = float(rune_bonus), honest_text = rune_honest_text, is_percentage = rune_is_percentage)
+        new_rune.save()
+
+    return render(request, 'refresh-rune-database.html', context)
 
 
 
@@ -119,8 +172,6 @@ def refreshMasteryDatabase(request):
         new_mastery.save()
 
     return render(request, 'refresh-mastery-database.html', context)
-
-
 
 
 
@@ -268,6 +319,7 @@ def requestcurrentgame(request):
 
             player_objects = searchSummonerName(players_ids_list)
             player_ranks = searchSummonerRank(players_ids_list)
+            player_stats, stat_success = searchSummonerStats(players_ids_list)
 
             # fill the data array with the name
             for player in player_objects:
@@ -276,6 +328,10 @@ def requestcurrentgame(request):
 
             for player in data['participants']:
                 data_formated[str(player['summonerId'])]['side'] = player['teamId']
+                if stat_success == 1:
+                    for stat in player_stats[int(player['summonerId'])]['playerStatSummaries']:
+                        if stat['playerStatSummaryType'] == 'Unranked':
+                            data_formated[str(player['summonerId'])]['wins'] = stat['wins']
 
             # fill the data array with the tier
             for player in player_ranks:
@@ -311,6 +367,8 @@ def requestcurrentgame(request):
             context['header'].append('Name')
             context['header'].append('Champion')
             context['header'].append('Tier')
+            if stat_success == 1:
+                context['header'].append('Wins')
             context['header'].append('Masteries')
 
             context['players'] = []
@@ -321,6 +379,8 @@ def requestcurrentgame(request):
                     player_data_to_context.append(data_formated[player]['name'])
                     player_data_to_context.append(data_formated[player]['champion'])
                     player_data_to_context.append(data_formated[player]['tier'])
+                    if stat_success == 1:
+                        player_data_to_context.append(data_formated[player]['wins'])
                     player_data_to_context.append(data_formated[player]['masteries'])
                     context['players'].append(player_data_to_context)
 
@@ -328,6 +388,8 @@ def requestcurrentgame(request):
             context2['header'].append('Name')
             context2['header'].append('Champion')
             context2['header'].append('Tier')
+            if stat_success == 1:
+                context2['header'].append('Wins')
             context2['header'].append('Masteries')
 
             context2['players'] = []
@@ -338,6 +400,8 @@ def requestcurrentgame(request):
                     player_data_to_context.append(data_formated[player]['name'])
                     player_data_to_context.append(data_formated[player]['champion'])
                     player_data_to_context.append(data_formated[player]['tier'])
+                    if stat_success == 1:
+                        player_data_to_context.append(data_formated[player]['wins'])
                     player_data_to_context.append(data_formated[player]['masteries'])
                     context2['players'].append(player_data_to_context)
 
