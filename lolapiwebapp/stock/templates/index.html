@@ -1,6 +1,926 @@
-<p><strong>Welcome to LOL Stock!</strong></p>
+<!doctype html>
+<!--
+  Material Design Lite
+  Copyright 2015 Google Inc. All rights reserved.
 
-<p><a href="{% url 'getcurrentgame' %}">Show Summoner's Current Match</a></p>
-<p><a href="{% url 'getmatchhistory' %}">Show Summoner's Match History</a></p>
-<p><a href="{% url 'getSummonerId' %}">Search Summoner's ID</a></p>
-<p><a href="{% url 'refreshChampionDatabase' %}">Refresh Champion Database</a></p>
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License
+-->
+
+<html lang="pt">
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Introducing Lollipop, a sweet new take on LoLStocks.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <title>LoLStocks</title>
+
+    <!-- Page styles -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.min.css">
+    <style>
+    #view-source {
+      position: fixed;
+      display: block;
+      right: 0;
+      bottom: 0;
+      margin-right: 40px;
+      margin-bottom: 40px;
+      z-index: 900;
+    }
+    /**
+ * Copyright 2015 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+body {
+  margin: 0;
+}
+
+/* Disable ugly boxes around images in IE10 */
+a img{
+  border: 0px;
+}
+
+::-moz-selection {
+  background-color: #6ab344;
+  color: #fff;
+}
+
+::selection {
+  background-color: #6ab344;
+  color: #fff;
+}
+
+.LoLStocks-search-box .mdl-textfield__input {
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.LoLStocks-header .mdl-menu__container {
+  z-index: 50;
+  margin: 0 !important;
+}
+
+
+.mdl-textfield--expandable {
+  width: auto;
+}
+
+.LoLStocks-fab {
+  position: absolute;
+  right: 20%;
+  bottom: -26px;
+  z-index: 3;
+  background: #ff4081 !important;
+  color: black !important;
+}
+
+.LoLStocks-mobile-title {
+  display: none !important;
+}
+
+
+.LoLStocks-logo-image {
+  height: 28px;
+  width: 140px;
+}
+
+
+.LoLStocks-header {
+  overflow: visible;
+  background-color: white;
+}
+
+  .LoLStocks-header .material-icons {
+    color: #767777 !important;
+  }
+
+  .LoLStocks-header .mdl-layout__drawer-button {
+    background: transparent;
+    color: #767777;
+  }
+
+  .LoLStocks-header .mdl-navigation__link {
+    color: #757575;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .LoLStocks-navigation-container {
+    /* Simple hack to make the overflow happen to the left instead... */
+    direction: rtl;
+    -webkit-order: 1;
+        -ms-flex-order: 1;
+            order: 1;
+    width: 500px;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .LoLStocks-navigation {
+    /* ... and now make sure the content is actually LTR */
+    direction: ltr;
+    -webkit-justify-content: flex-end;
+        -ms-flex-pack: end;
+            justify-content: flex-end;
+    width: 800px;
+  }
+
+  .LoLStocks-search-box.is-focused + .LoLStocks-navigation-container {
+    opacity: 0;
+    width: 100px;
+  }
+
+
+  .LoLStocks-navigation .mdl-navigation__link {
+    display: inline-block;
+    height: 60px;
+    line-height: 68px;
+    background-color: transparent !important;
+    border-bottom: 4px solid transparent;
+  }
+
+    .LoLStocks-navigation .mdl-navigation__link:hover {
+      border-bottom: 4px solid #8bc34a;
+    }
+
+  .LoLStocks-search-box {
+    -webkit-order: 2;
+        -ms-flex-order: 2;
+            order: 2;
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+
+  .LoLStocks-more-button {
+    -webkit-order: 3;
+        -ms-flex-order: 3;
+            order: 3;
+  }
+
+
+.LoLStocks-drawer {
+  border-right: none;
+}
+
+  .LoLStocks-drawer-separator {
+    height: 1px;
+    background-color: #dcdcdc;
+    margin: 8px 0;
+  }
+
+  .LoLStocks-drawer .mdl-navigation__link.mdl-navigation__link {
+    font-size: 14px;
+    color: #757575;
+  }
+
+  .LoLStocks-drawer span.mdl-navigation__link.mdl-navigation__link {
+    color: #8bc34a;
+  }
+
+  .LoLStocks-drawer .mdl-layout-title {
+    position: relative;
+    background: #6ab344;
+    height: 160px;
+  }
+
+    .LoLStocks-drawer .LoLStocks-logo-image {
+      position: absolute;
+      bottom: 16px;
+    }
+
+.LoLStocks-be-together-section {
+  position: relative;
+  height: 800px;
+  width: auto;
+  background-color: #f3f3f3;
+  background: url("https://i.ytimg.com/vi/BGtROJeMPeE/maxresdefault.jpg") center 30% no-repeat;
+  background-size: cover;
+}
+
+.logo-font {
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  line-height: 1;
+  color: rgba(0,0,0,.87);
+  font-weight: 500;
+}
+
+.LoLStocks-slogan {
+  font-size: 50px;
+  padding-top: 25px;
+  font-family: "Roboto","Helvetica","Arial",sans-serif;
+  font-weight: 300;
+}
+
+.LoLStocks-sub-slogan {
+  font-size: 21px;
+  padding-top: 1px;
+  padding-bottom: 14px;
+}
+
+.LoLStocks-create-character {
+  font-size: 21px;
+  padding-top: 400px;
+}
+
+  .LoLStocks-create-character a {
+    text-decoration: none;
+    color: #767777;
+    font-weight: 300;
+  }
+
+.LoLStocks-screen-section {
+  position: relative;
+  padding-top: 60px;
+  padding-bottom: 80px;
+}
+
+.LoLStocks-screens {
+  text-align: right;
+  width: 100%;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+.LoLStocks-screen {
+  text-align: center;
+}
+
+.LoLStocks-screen .LoLStocks-link {
+  margin-top: 16px;
+  display: block;
+  z-index: 2;
+}
+
+.LoLStocks-image-link {
+  text-decoration: none;
+}
+
+.LoLStocks-wear {
+  display: inline-block;
+  width: 160px;
+  margin-right: 32px;
+}
+
+  .LoLStocks-wear .LoLStocks-screen-image {
+    width: 40%;
+    z-index: 1;
+  }
+
+
+.LoLStocks-phone {
+  display: inline-block;
+  width: 64px;
+  margin-right: 48px;
+}
+
+  .LoLStocks-phone .LoLStocks-screen-image {
+    width: 100%;
+    z-index: 1;
+  }
+
+
+.LoLStocks-tablet {
+  display: inline-block;
+  width: 110px;
+  margin-right: 64px;
+}
+
+  .LoLStocks-tablet .LoLStocks-screen-image {
+    width: 100%;
+    z-index: 1;
+  }
+
+  .LoLStocks-tablet .LoLStocks-link {
+    display: block;
+    z-index: 2;
+  }
+
+
+.LoLStocks-tv {
+  display: inline-block;
+  width: 300px;
+  margin-right: 80px;
+}
+
+  .LoLStocks-tv .LoLStocks-screen-image {
+    width: 100%;
+    z-index: 1;
+  }
+
+
+.LoLStocks-auto {
+  display: inline-block;
+  width: 300px;
+  overflow: hidden;
+}
+
+  .LoLStocks-auto .LoLStocks-screen-image {
+    display: block;
+    height: 300px;
+    z-index: 1;
+  }
+
+
+.LoLStocks-wear-section {
+  position: relative;
+  background: url('images/wear.png') center top no-repeat;
+  background-size: cover;
+  height: 800px;
+}
+
+.LoLStocks-wear-band {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  background-color: #37474f;
+}
+
+.LoLStocks-wear-band-text {
+  max-width: 800px;
+  margin-left: 25%;
+  padding: 24px;
+  text-align: left;
+  color: white;
+}
+
+  .LoLStocks-wear-band-text p {
+    padding-top: 8px;
+  }
+
+.LoLStocks-link {
+  text-decoration: none;
+  color: #8bc34a !important;
+}
+
+  .LoLStocks-link:hover {
+    color: #7cb342 !important;
+  }
+
+  .LoLStocks-link .material-icons {
+    position: relative;
+    top: -1px;
+    vertical-align: middle;
+  }
+
+.LoLStocks-alt-link {
+  text-decoration: none;
+  color: #64ffda !important;
+  font-size: 16px;
+}
+
+  .LoLStocks-alt-link:hover {
+    color: #00bfa5 !important;
+  }
+
+  .LoLStocks-alt-link .material-icons {
+    position: relative;
+    top: 6px;
+  }
+
+.LoLStocks-customized-section {
+  text-align: center;
+}
+
+.LoLStocks-customized-section-text {
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 80px 16px 0 16px;
+}
+
+  .LoLStocks-customized-section-text p {
+    padding-top: 16px;
+  }
+
+.LoLStocks-customized-section-image {
+  background: url('images/devices.jpg') center top no-repeat;
+  background-size: cover;
+  height: 400px;
+}
+
+.LoLStocks-more-section {
+  padding: 80px 0;
+  max-width: 1044px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+  .LoLStocks-more-section .LoLStocks-section-title {
+    margin-left: 12px;
+    padding-bottom: 24px;
+  }
+
+.LoLStocks-card-container {
+}
+
+  .LoLStocks-card-container .mdl-card__media {
+    overflow: hidden;
+    background: transparent;
+  }
+
+    .LoLStocks-card-container .mdl-card__media img {
+      width: 100%;
+    }
+
+  .LoLStocks-card-container .mdl-card__title {
+    background: transparent;
+    height: auto;
+  }
+
+  .LoLStocks-card-container .mdl-card__title-text {
+    color: black;
+    height: auto;
+  }
+
+  .LoLStocks-card-container .mdl-card__supporting-text {
+    height: auto;
+    color: black;
+    padding-bottom: 56px;
+  }
+
+  .LoLStocks-card-container .mdl-card__actions {
+    position: absolute;
+    bottom: 0;
+  }
+
+  .LoLStocks-card-container .mdl-card__actions a {
+    border-top: none;
+    font-size: 16px;
+  }
+
+.LoLStocks-footer {
+  background-color: #fafafa;
+  position: relative;
+}
+
+  .LoLStocks-footer a:hover {
+    color: #8bc34a;
+  }
+
+  .LoLStocks-footer .mdl-mega-footer--top-section::after {
+    border-bottom: none;
+  }
+
+  .LoLStocks-footer .mdl-mega-footer--middle-section::after {
+    border-bottom: none;
+  }
+
+  .LoLStocks-footer .mdl-mega-footer--bottom-section {
+    position: relative;
+  }
+
+  .LoLStocks-footer .mdl-mega-footer--bottom-section a {
+    margin-right: 2em;
+  }
+
+  .LoLStocks-footer .mdl-mega-footer--right-section a .material-icons {
+    position: relative;
+    top: 6px;
+  }
+
+
+.LoLStocks-link-menu:hover {
+  cursor: pointer;
+}
+
+
+/**** Mobile layout ****/
+@media (max-width: 900px) {
+  .LoLStocks-navigation-container {
+    display: none;
+  }
+
+  .LoLStocks-title {
+    display: none !important;
+  }
+
+  .LoLStocks-mobile-title {
+    display: block !important;
+    position: absolute;
+    left: calc(50% - 70px);
+    top: 12px;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* WebViews in iOS 9 break the "~" operator, and WebViews in OS X 10.10 break
+     consecutive "+" operators in some cases. Therefore, we need to use both
+     here to cover all the bases. */
+  .LoLStocks.LoLStocks-search-box.is-focused ~ .LoLStocks-mobile-title,
+  .LoLStocks-search-box.is-focused + .LoLStocks-navigation-container + .LoLStocks-mobile-title {
+    opacity: 0;
+  }
+
+  .LoLStocks-more-button {
+    display: none;
+  }
+
+  .LoLStocks-search-box.is-focused {
+    width: calc(100% - 48px);
+  }
+
+  .LoLStocks-search-box .mdl-textfield__expandable-holder {
+    width: 100%;
+  }
+
+  .LoLStocks-be-together-section {
+    height: 350px;
+  }
+
+  .LoLStocks-slogan {
+    font-size: 26px;
+    margin: 0 16px;
+    padding-top: 24px;
+  }
+
+  .LoLStocks-sub-slogan {
+    font-size: 16px;
+    margin: 0 16px;
+    padding-top: 8px;
+  }
+
+  .LoLStocks-create-character {
+    padding-top: 200px;
+    font-size: 16px;
+  }
+
+  .LoLStocks-create-character img {
+    height: 12px;
+  }
+
+  .LoLStocks-fab {
+    display: none;
+  }
+
+  .LoLStocks-wear-band-text {
+    margin-left: 0;
+    padding: 16px;
+  }
+
+  .LoLStocks-footer .mdl-mega-footer--bottom-section {
+    display: none;
+  }
+}
+
+    </style>
+  </head>
+  <body>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+
+      <div class="LoLStocks-header mdl-layout__header mdl-layout__header--waterfall">
+        <div class="mdl-layout__header-row">
+          <span class="LoLStocks-title mdl-layout-title">
+            <img class="LoLStocks-logo-image" src="http://f.cl.ly/items/420k3f3o0C343D3T2h04/logo-1.png">
+          </span>
+          <!-- Add spacer, to align navigation to the right in desktop -->
+          <div class="LoLStocks-header-spacer mdl-layout-spacer"></div>
+<!--           <div class="LoLStocks-search-box mdl-textfield mdl-js-textfield mdl-textfield--expandable mdl-textfield--floating-label mdl-textfield--align-right mdl-textfield--full-width">
+            <label class="mdl-button mdl-js-button mdl-button--icon" for="search-field">
+              <i class="material-icons">search</i>
+            </label>
+            <div class="mdl-textfield__expandable-holder">
+              <input class="mdl-textfield__input" type="text" id="search-field">
+            </div>
+          </div> -->
+          <!-- Navigation -->
+          <div class="LoLStocks-navigation-container">
+            <nav class="LoLStocks-navigation mdl-navigation">
+              <a class="mdl-navigation__link mdl-typography--text-uppercase" href="http://champion.gg">Estatísticas de Champions</a>
+              <a class="mdl-navigation__link mdl-typography--text-uppercase" href="http://www.lolking.com">Histórico do invocador</a>
+              <a class="mdl-navigation__link mdl-typography--text-uppercase" href="http://www.bestbans.com">O que banir?</a>
+
+            </nav>
+          </div>
+<!--           <span class="LoLStocks-mobile-title mdl-layout-title">
+            <img class="LoLStocks-logo-image" src="images/LoLStocks-logo.png">
+          </span> -->
+<!--           <button class="LoLStocks-more-button mdl-button mdl-js-button mdl-button--icon mdl-js-ripple-effect" id="more-button">
+            <i class="material-icons">more_vert</i>
+          </button>
+          <ul class="mdl-menu mdl-js-menu mdl-menu--bottom-right mdl-js-ripple-effect" for="more-button">
+            <li class="mdl-menu__item">5.0 Lollipop</li>
+            <li class="mdl-menu__item">4.4 KitKat</li>
+            <li disabled class="mdl-menu__item">4.3 Jelly Bean</li>
+            <li class="mdl-menu__item">LoLStocks History</li>
+          </ul> -->
+        </div>
+      </div>
+
+      <!-- <div class="LoLStocks-drawer mdl-layout__drawer">
+        <span class="mdl-layout-title">
+          <img class="LoLStocks-logo-image" src="images/LoLStocks-logo-white.png">
+        </span>
+        <nav class="mdl-navigation">
+          <a class="mdl-navigation__link" href="">Phones</a>
+          <a class="mdl-navigation__link" href="">Tablets</a>
+          <a class="mdl-navigation__link" href="">Wear</a>
+          <a class="mdl-navigation__link" href="">TV</a>
+          <a class="mdl-navigation__link" href="">Auto</a>
+          <a class="mdl-navigation__link" href="">One</a>
+          <a class="mdl-navigation__link" href="">Play</a>
+          <div class="LoLStocks-drawer-separator"></div>
+          <span class="mdl-navigation__link" href="">Versions</span>
+          <a class="mdl-navigation__link" href="">Lollipop 5.0</a>
+          <a class="mdl-navigation__link" href="">KitKat 4.4</a>
+          <a class="mdl-navigation__link" href="">Jelly Bean 4.3</a>
+          <a class="mdl-navigation__link" href="">LoLStocks history</a>
+          <div class="LoLStocks-drawer-separator"></div>
+          <span class="mdl-navigation__link" href="">Resources</span>
+          <a class="mdl-navigation__link" href="">Official blog</a>
+          <a class="mdl-navigation__link" href="">LoLStocks on Google+</a>
+          <a class="mdl-navigation__link" href="">LoLStocks on Twitter</a>
+          <div class="LoLStocks-drawer-separator"></div>
+          <span class="mdl-navigation__link" href="">For developers</span>
+          <a class="mdl-navigation__link" href="">App developer resources</a>
+          <a class="mdl-navigation__link" href="">LoLStocks Open Source Project</a>
+          <a class="mdl-navigation__link" href="">LoLStocks SDK</a>
+        </nav>
+      </div>
+ -->
+      <div class="LoLStocks-content mdl-layout__content">
+        <a name="top"></a>
+        <div class="LoLStocks-be-together-section mdl-typography--text-center">
+
+        		<div class="mdl-grid">
+	        		<div class="mdl-cell mdl-cell--3-col"></div>
+	        		<div class="mdl-cell mdl-cell--6-col" style="margin-top: 254px;">
+				        <div style="background-color: rgba(255, 255, 255, 0.8); border-radius: 15px; max-width: 552px; margin: auto;">
+				          <div class="logo-font LoLStocks-slogan">Detalhes da Partida</div>
+				          <div class="logo-font LoLStocks-sub-slogan">
+				                <form action="requestcurrentgame/" method="post" style="display: flex; align-items: center; padding-left: 9%;">
+				                  {% csrf_token %}
+				                  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+				                      <input class="mdl-textfield__input" type="text" id="sample3" id="requestcurrentgame" type="text" name="requestcurrentgame">
+				                      <label for="requestcurrentgame" class="mdl-textfield__label" for="sample3" style="color: rgba(0,0,0,.5)">Nome de Invocador</label>
+
+				                  </div>
+				                  <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" style="margin-left: 10px;">Checar
+				                  </button>
+				                <!-- Left aligned menu below button -->
+				                  <button id="region"
+				                          class="mdl-button mdl-js-button mdl-button--icon">
+				                    <i class="material-icons">more_vert</i>
+				                  </button>
+				                  <span style="font-weight: 400;">BR</span>
+				                  <ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect"
+				                      for="region">
+				                    <li class="mdl-menu__item">
+				                      <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="option-0">
+				                      <input type="radio" id="option-0" class="mdl-radio__button" name="options" value="0">
+				                      <span class="mdl-radio__label">BR</span>
+				                    </label>      
+				                    </li>
+				                    <li class="mdl-menu__item mdl-menu__item--full-bleed-divider">
+				                      <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="option-1">
+				                      <input type="radio" id="option-1" class="mdl-radio__button" name="options" value="1">
+				                      <span class="mdl-radio__label">EUW</span>
+				                    </label>
+				                    </li>
+				                    <li class="mdl-menu__item">
+				                    <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="option-2">
+				                      <input type="radio" id="option-2" class="mdl-radio__button" name="options" value="2">
+				                      <span class="mdl-radio__label">LAN</span>
+				                    </label>
+				                    </li>
+				                    <li class="mdl-menu__item">
+				                      <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="option-3">
+				                      <input type="radio" id="option-3" class="mdl-radio__button" name="options" value="3">
+				                      <span class="mdl-radio__label">NA</span>
+				                    </label>
+				                    </li>
+				                  </ul>
+				                </form> 
+				          </div>
+				<!--           <div class="logo-font LoLStocks-create-character">
+				            <a href=""><img src="images/andy.png"> create your LoLStocks character</a>
+				          </div> -->
+
+				          <a href="#screens">
+				            <button class="LoLStocks-fab mdl-button mdl-button--colored mdl-js-button mdl-button--fab mdl-js-ripple-effect">
+				              <i class="material-icons" style="color: #fff">expand_more</i>
+				            </button>
+				          </a>
+				        </div>
+				    </div>
+				    <div class="mdl-cell mdl-cell--3-col"></div>
+			    </div>
+
+        </div>
+     <!--    <div class="LoLStocks-screen-section mdl-typography--text-center">
+          <a name="screens"></a>
+          <div class="mdl-typography--display-1-color-contrast">Powering screens of all sizes</div>
+          <div class="LoLStocks-screens">
+            <div class="LoLStocks-wear LoLStocks-screen">
+              <a class="LoLStocks-image-link" href="">
+                <img class="LoLStocks-screen-image" src="images/wear-silver-on.png">
+                <img class="LoLStocks-screen-image" src="images/wear-black-on.png">
+              </a>
+              <a class="LoLStocks-link mdl-typography--font-regular mdl-typography--text-uppercase" href="">LoLStocks Wear</a>
+            </div>
+            <div class="LoLStocks-phone LoLStocks-screen">
+              <a class="LoLStocks-image-link" href="">
+                <img class="LoLStocks-screen-image" src="images/nexus6-on.jpg">
+              </a>
+              <a class="LoLStocks-link mdl-typography--font-regular mdl-typography--text-uppercase" href="">Phones</a>
+            </div>
+            <div class="LoLStocks-tablet LoLStocks-screen">
+              <a class="LoLStocks-image-link" href="">
+                <img class="LoLStocks-screen-image" src="images/nexus9-on.jpg">
+              </a>
+              <a class="LoLStocks-link mdl-typography--font-regular mdl-typography--text-uppercase" href="">Tablets</a>
+            </div>
+            <div class="LoLStocks-tv LoLStocks-screen">
+              <a class="LoLStocks-image-link" href="">
+                <img class="LoLStocks-screen-image" src="images/tv-on.jpg">
+              </a>
+              <a class="LoLStocks-link mdl-typography--font-regular mdl-typography--text-uppercase" href="">LoLStocks TV</a>
+            </div>
+            <div class="LoLStocks-auto LoLStocks-screen">
+              <a class="LoLStocks-image-link" href="">
+                <img class="LoLStocks-screen-image" src="images/auto-on.jpg">
+              </a>
+              <a class="LoLStocks-link mdl-typography--font-regular mdl-typography--text-uppercase mdl-typography--text-left" href="">Coming Soon: LoLStocks Auto</a>
+            </div>
+          </div> -->
+       <!--  </div>
+        <div class="LoLStocks-wear-section">
+          <div class="LoLStocks-wear-band">
+            <div class="LoLStocks-wear-band-text">
+              <div class="mdl-typography--display-2 mdl-typography--font-thin">The best of Google built in</div>
+              <p class="mdl-typography--headline mdl-typography--font-thin">
+                LoLStocks works perfectly with your favourite apps like Google Maps,
+                Calendar and YouTube.
+              </p>
+              <p>
+                <a class="mdl-typography--font-regular mdl-typography--text-uppercase LoLStocks-alt-link" href="">
+                  See what's new in the Play Store&nbsp;<i class="material-icons">chevron_right</i>
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="LoLStocks-customized-section">
+          <div class="LoLStocks-customized-section-text">
+            <div class="mdl-typography--font-light mdl-typography--display-1-color-contrast">Customised by you, for you</div>
+            <p class="mdl-typography--font-light">
+              Put the stuff that you care about right on your home screen: the latest news, the weather or a stream of your recent photos.
+              <br>
+              <a href="" class="LoLStocks-link mdl-typography--font-light">Customise your phone</a>
+            </p>
+          </div>
+          <div class="LoLStocks-customized-section-image"></div>
+        </div> -->
+        <div class="LoLStocks-more-section">
+          <div class="LoLStocks-section-title mdl-typography--display-1-color-contrast">Mais em League of Legends</div>
+          <div class="LoLStocks-card-container mdl-grid">
+            <div class="mdl-cell mdl-cell--3-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
+              <div class="mdl-card__media">
+                <img src="http://br.leagueoflegends.com/sites/default/files/styles/wide_small/public/upload/patchnotes_2016header_0.jpg?itok=bllXbI3g">
+              </div>
+              <div class="mdl-card__title">
+                 <h4 class="mdl-card__title-text">Notas de Atualização 6.6</h4>
+              </div>
+              <div class="mdl-card__supporting-text">
+                <span class="mdl-typography--font-light mdl-typography--subhead">Desta vez, focamos no valor estratégico trazido por alguns dos nossos Campeões especialistas.</span>
+              </div>
+              <div class="mdl-card__actions">
+                 <a class="LoLStocks-link mdl-button mdl-js-button mdl-typography--text-uppercase" href="http://br.leagueoflegends.com/pt/news/game-updates/patch/notas-da-atualizacao-66">
+                   Detalhes
+                   <i class="material-icons">chevron_right</i>
+                 </a>
+              </div>
+            </div>
+
+            <div class="mdl-cell mdl-cell--3-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
+              <div class="mdl-card__media">
+                <img src="http://br.leagueoflegends.com/sites/default/files/styles/wide_small/public/upload/hextech_crafting_banner_1_0.jpg?itok=9v2Z9XXc">
+              </div>
+              <div class="mdl-card__title">
+                 <h4 class="mdl-card__title-text">Criação Hextec no ar!</h4>
+              </div>
+              <div class="mdl-card__supporting-text">
+                <span class="mdl-typography--font-light mdl-typography--subhead">Eis uma nova maneira de criar, ganhar ou obter Campeões, skins e muito mais.</span>
+              </div>
+              <div class="mdl-card__actions">
+                 <a class="LoLStocks-link mdl-button mdl-js-button mdl-typography--text-uppercase" href="http://br.leagueoflegends.com/pt/news/game-updates/features/criacao-hextec-chegou-ao-brasil">
+                   Detalhes
+                   <i class="material-icons">chevron_right</i>
+                 </a>
+              </div>
+            </div>
+
+            <div class="mdl-cell mdl-cell--3-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
+              <div class="mdl-card__media">
+                <img src="http://br.leagueoflegends.com/sites/default/files/styles/wide_small/public/upload/divulgacao_como_gankar.jpg?itok=XCianT5x">
+              </div>
+              <div class="mdl-card__title">
+                 <h4 class="mdl-card__title-text">Central de Aprendizado</h4>
+              </div>
+              <div class="mdl-card__supporting-text">
+                <span class="mdl-typography--font-light mdl-typography--subhead">Dúvidas sobre o papel das sentinelas na visão de jogo e sobre os atributos de seu Campeão? Vem pra Central!</span>
+              </div>
+              <div class="mdl-card__actions">
+                 <a class="LoLStocks-link mdl-button mdl-js-button mdl-typography--text-uppercase" href="http://centraldeaprendizado.br.leagueoflegends.com/">
+                   Detalhes
+                   <i class="material-icons">chevron_right</i>
+                 </a>
+              </div>
+            </div>
+
+            <div class="mdl-cell mdl-cell--3-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
+              <div class="mdl-card__media">
+                <img src="http://br.leagueoflegends.com/sites/default/files/styles/wide_small/public/upload/saleannouncebanner_march.2016.modified_en.jpg?itok=zHmqkr6N">
+              </div>
+              <div class="mdl-card__title">
+                 <h4 class="mdl-card__title-text">Promoção antecipada de março</h4>
+              </div>
+              <div class="mdl-card__supporting-text">
+                <span class="mdl-typography--font-light mdl-typography--subhead">Confira quais skins recém-lançadas entram em promoção!</span>
+              </div>
+              <div class="mdl-card__actions">
+                 <a class="LoLStocks-link mdl-button mdl-js-button mdl-typography--text-uppercase" href="http://br.leagueoflegends.com/pt/news/store/sales/promocao-antecipada-de-marco-de-18-22/03">
+                   Detalhes
+                   <i class="material-icons">chevron_right</i>
+                 </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="LoLStocks-footer mdl-mega-footer">
+          <div class="mdl-mega-footer--top-section">
+            <div class="mdl-mega-footer--left-section">
+              <button class="mdl-mega-footer--social-btn"></button>
+              &nbsp;
+              <button class="mdl-mega-footer--social-btn"></button>
+              &nbsp;
+              <button class="mdl-mega-footer--social-btn"></button>
+            </div>
+            <div class="mdl-mega-footer--right-section">
+              <a class="mdl-typography--font-light" href="#top">
+                Back to Top
+                <i class="material-icons">expand_less</i>
+              </a>
+            </div>
+          </div>
+<!-- 
+          <div class="mdl-mega-footer--middle-section">
+            <p class="mdl-typography--font-light">Satellite imagery: © 2014 Astrium, DigitalGlobe</p>
+            <p class="mdl-typography--font-light">Some features and devices may not be available in all areas</p>
+          </div>
+
+          <div class="mdl-mega-footer--bottom-section">
+            <a class="LoLStocks-link LoLStocks-link-menu mdl-typography--font-light" id="version-dropdown">
+              Versions
+              <i class="material-icons">arrow_drop_up</i>
+            </a>
+            <ul class="mdl-menu mdl-js-menu mdl-menu--top-left mdl-js-ripple-effect" for="version-dropdown">
+              <li class="mdl-menu__item">5.0 Lollipop</li>
+              <li class="mdl-menu__item">4.4 KitKat</li>
+              <li class="mdl-menu__item">4.3 Jelly Bean</li>
+              <li class="mdl-menu__item">LoLStocks History</li>
+            </ul>
+            <a class="LoLStocks-link LoLStocks-link-menu mdl-typography--font-light" id="developers-dropdown">
+              For Developers
+              <i class="material-icons">arrow_drop_up</i>
+            </a>
+            <ul class="mdl-menu mdl-js-menu mdl-menu--top-left mdl-js-ripple-effect" for="developers-dropdown">
+              <li class="mdl-menu__item">App developer resources</li>
+              <li class="mdl-menu__item">LoLStocks Open Source Project</li>
+              <li class="mdl-menu__item">LoLStocks SDK</li>
+              <li class="mdl-menu__item">LoLStocks for Work</li>
+            </ul>
+            <a class="LoLStocks-link mdl-typography--font-light" href="">Blog</a>
+            <a class="LoLStocks-link mdl-typography--font-light" href="">Privacy Policy</a>
+          </div> -->
+
+        </footer>
+      </div>
+    </div>
+<!--     <a href="https://github.com/google/material-design-lite/blob/master/templates/LoLStocks-dot-com/" target="_blank" id="view-source" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color--accent mdl-color-text--accent-contrast">View Source</a> -->
+    <script src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+  </body>
+</html>
