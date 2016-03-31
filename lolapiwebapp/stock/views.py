@@ -108,6 +108,25 @@ def searchSummonerChampionMastery(summoner_id, champion_id):
 
 
 
+def searchTierImage(tier):
+    tier = tier.lower()
+    tier = tier.title()
+    imgage_dict = {
+        'Unranked': 'http://s18.postimg.org/5t36g8pf9/unranked_1_92a5f4dfbb5ffab13f901c80a9d14384.png',
+        'Bronze': 'https://s3.amazonaws.com/f.cl.ly/items/3q1f0B2j1E0Y0a3P310V/Bronze.png',
+        'Silver': 'https://s3.amazonaws.com/f.cl.ly/items/0J253J1z3o1d2Z152M2b/Silver.png',
+        'Gold': 'https://s3.amazonaws.com/f.cl.ly/items/1Y360o3N261b020g0h1r/Gold.png',
+        'Platinum': 'https://s3.amazonaws.com/f.cl.ly/items/3F2j1u2d3f0w0l260m3E/Platinum.png',
+        'Diamond': 'https://s3.amazonaws.com/f.cl.ly/items/2X2F2r192B3K1j0p0n3d/Diamond.png',
+        'Master': 'https://s3.amazonaws.com/f.cl.ly/items/083C392i0t1p1a3h1C3i/Master.png',
+        'Challenger': 'https://s3.amazonaws.com/f.cl.ly/items/0K350Q2C0b0E0n043e0L/Challenger.png',
+    }
+
+    return imgage_dict.get(tier, 'http://s18.postimg.org/5t36g8pf9/unranked_1_92a5f4dfbb5ffab13f901c80a9d14384.png')
+
+
+
+
 def refreshRuneDatabase(request):
     context ={}
     # request the mastery list from the riot API
@@ -340,16 +359,21 @@ def requestcurrentgame(request):
             #fill the data array with the champion name
             for player in data['participants']:
                 heroes_ids = player['championId']
-                # championmastery = searchSummonerChampionMastery(player['summonerId'], heroes_ids)
-                # masterylevel = championmastery['championLevel']
                 champion = Hero.objects.filter(id_riot = heroes_ids)
                 data_formated[str(player['summonerId'])]['champion'] = champion[0].__str__()
+                champion_name_process = champion[0].__str__()
+                champion_name_process = champion_name_process.replace(' ', '')
+                champion_name_process = champion_name_process.replace('.', '')
+                if champion_name_process == 'Bardo':
+                    champion_name_process = 'Bard'
+                data_formated[str(player['summonerId'])]['champion'] = '<span style="margin-left: 12px;"><img style="margin-right: 6px;" src="http://ddragon.leagueoflegends.com/cdn/6.6.1/img/champion/' + champion_name_process + '.png" class="rank--img tier-img">' +  data_formated[str(player['summonerId'])]['champion'] + '<span>'
                 try:
                     data_formated[str(player['summonerId'])]['tier']
-                    # data_formated[str(player['summonerId'])]['masterylevel'] = masterylevel
+                    data_formated[str(player['summonerId'])]['tier'] = '<span style="margin-left: 12px;"><img style="margin-right: 2px;" src="'+ searchTierImage(data_formated[str(player['summonerId'])]['tier']) +'" class="rank--img tier-img">' + data_formated[str(player['summonerId'])]['tier'] + '<span>'
                 except:
-                    data_formated[str(player['summonerId'])]['tier'] = 'Unranked'
-                    # data_formated[str(player['summonerId'])]['masterylevel'] = masterylevel
+                    data_formated[str(player['summonerId'])]['tier'] = 'UNRANKED'
+                    data_formated[str(player['summonerId'])]['tier'] = '<span style="margin-left: 12px;"><img style="margin-right: 2px;" src="'+ searchTierImage(data_formated[str(player['summonerId'])]['tier']) +'" class="rank--img tier-img">' + data_formated[str(player['summonerId'])]['tier'] + '<span>'
+
 
             mastery_set = {}
             # fill the data array with the masteries stats
@@ -364,8 +388,8 @@ def requestcurrentgame(request):
                 data_formated[str(player['summonerId'])]['masteries'] = str(mastery_set[1]) + ' / ' + str(mastery_set[3]) + ' / ' +str(mastery_set[2])
 
             context['header'] = []
-            context['header'].append('Name')
             context['header'].append('Champion')
+            context['header'].append('Name')
             context['header'].append('Tier')
             if stat_success == 1:
                 context['header'].append('Wins')
@@ -376,8 +400,8 @@ def requestcurrentgame(request):
             for player in data_formated:
                 if data_formated[player]['side'] == 100:
                     player_data_to_context = []
-                    player_data_to_context.append(data_formated[player]['name'])
                     player_data_to_context.append(data_formated[player]['champion'])
+                    player_data_to_context.append(data_formated[player]['name'])
                     player_data_to_context.append(data_formated[player]['tier'])
                     if stat_success == 1:
                         player_data_to_context.append(data_formated[player]['wins'])
@@ -385,8 +409,8 @@ def requestcurrentgame(request):
                     context['players'].append(player_data_to_context)
 
             context2['header'] = []
-            context2['header'].append('Name')
             context2['header'].append('Champion')
+            context2['header'].append('Name')
             context2['header'].append('Tier')
             if stat_success == 1:
                 context2['header'].append('Wins')
@@ -397,8 +421,8 @@ def requestcurrentgame(request):
             for player in data_formated:
                 if data_formated[player]['side'] == 200:
                     player_data_to_context = []
-                    player_data_to_context.append(data_formated[player]['name'])
                     player_data_to_context.append(data_formated[player]['champion'])
+                    player_data_to_context.append(data_formated[player]['name'])
                     player_data_to_context.append(data_formated[player]['tier'])
                     if stat_success == 1:
                         player_data_to_context.append(data_formated[player]['wins'])
