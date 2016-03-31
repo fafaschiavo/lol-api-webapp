@@ -366,7 +366,7 @@ def requestcurrentgame(request):
                 champion_name_process = champion_name_process.replace('.', '')
                 if champion_name_process == 'Bardo':
                     champion_name_process = 'Bard'
-                data_formated[str(player['summonerId'])]['champion'] = '<span style="margin-left: 12px;"><img style="margin-right: 6px;" src="http://ddragon.leagueoflegends.com/cdn/6.6.1/img/champion/' + champion_name_process + '.png" class="rank--img tier-img">' +  data_formated[str(player['summonerId'])]['champion'] + '<span>'
+                data_formated[str(player['summonerId'])]['champion'] = '<span style="margin-left: 12px;"><img style="margin-right: 6px;" src="http://ddragon.leagueoflegends.com/cdn/6.6.1/img/champion/' + champion_name_process + '.png" class="rank--img tier-img"><a style="color: rgba(0,0,0,.87);" href="http://champion.gg/champion/' + champion_name_process + '">' +  data_formated[str(player['summonerId'])]['champion'] + '</a><span>'
                 try:
                     data_formated[str(player['summonerId'])]['tier']
                     data_formated[str(player['summonerId'])]['tier'] = '<span style="margin-left: 12px;"><img style="margin-right: 2px;" src="'+ searchTierImage(data_formated[str(player['summonerId'])]['tier']) +'" class="rank--img tier-img">' + data_formated[str(player['summonerId'])]['tier'] + '<span>'
