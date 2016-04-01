@@ -210,7 +210,8 @@ def refreshChampionDatabase(request):
         champion_id_riot = data['data'][champion]['id']
         champion_name = data['data'][champion]['name']
         champion_title = data['data'][champion]['title']
-        new_champion = Hero(id_riot = champion_id_riot, name = champion_name, title = champion_title)
+        champion_key = data['data'][champion]['key']
+        new_champion = Hero(id_riot = champion_id_riot, name = champion_name, title = champion_title, key = champion_key)
         new_champion.save()
 
     return render(request, 'refresh-champion-database.html', context)
@@ -361,11 +362,10 @@ def requestcurrentgame(request):
                 heroes_ids = player['championId']
                 champion = Hero.objects.filter(id_riot = heroes_ids)
                 data_formated[str(player['summonerId'])]['champion'] = champion[0].__str__()
-                champion_name_process = champion[0].__str__()
-                champion_name_process = champion_name_process.replace(' ', '')
-                champion_name_process = champion_name_process.replace('.', '')
-                if champion_name_process == 'Bardo':
-                    champion_name_process = 'Bard'
+                # champion_name_process = champion[0].__str__()
+                # champion_name_process = champion_name_process.replace(' ', '')
+                # champion_name_process = champion_name_process.replace('.', '')
+                champion_name_process = champion[0].__key__()
                 data_formated[str(player['summonerId'])]['champion'] = '<span style="margin-left: 12px;"><img style="margin-right: 6px;" src="http://ddragon.leagueoflegends.com/cdn/6.6.1/img/champion/' + champion_name_process + '.png" class="rank--img tier-img"><a style="color: rgba(0,0,0,.87);" href="http://champion.gg/champion/' + champion_name_process + '">' +  data_formated[str(player['summonerId'])]['champion'] + '</a><span>'
                 try:
                     data_formated[str(player['summonerId'])]['tier']

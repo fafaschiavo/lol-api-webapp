@@ -7,9 +7,13 @@ class Hero(models.Model):
 	id_riot = models.IntegerField(default=0)
 	name = models.CharField(max_length=200)
 	title = models.CharField(max_length=400)
+	key = models.CharField(max_length=200, default = '-')
 
 	def __str__(self):
 		return self.name
+
+	def __key__(self):
+		return self.key
 
 class mastery(models.Model):
 	id_riot = models.IntegerField(default=0)
